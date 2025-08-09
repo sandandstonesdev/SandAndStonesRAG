@@ -1,0 +1,14 @@
+﻿<Project Sdk="Microsoft.VisualStudio.JavaScript.Sdk/1.0.784122">
+  <PropertyGroup>
+    <StartupCommand>npm run dev</StartupCommand>
+    <ShouldRunBuildScript>true</ShouldRunBuildScript>
+    <BuildOutputFolder>$(MSBuildProjectDirectory)\.next</BuildOutputFolder>
+    <PackageJsonDirectory>$(MSBuildProjectDirectory)</PackageJsonDirectory>
+    <EnvironmentVariables>
+      <NODE_OPTIONS>--max-old-space-size=4096</NODE_OPTIONS>
+    </EnvironmentVariables>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Include=".vscode\launch.json" />
+  </ItemGroup>
+</Project>
