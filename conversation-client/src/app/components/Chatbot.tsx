@@ -11,8 +11,7 @@ export default function Chatbot() {
     
     useEffect(() => {
         const newConnection = new signalR.HubConnectionBuilder()
-            .configureLogging(signalR.LogLevel.Debug)
-            .withUrl('http://localhost:5012/chatHub')
+            .withUrl(`${process.env.NEXT_PUBLIC_API_URL}/chatHub`)
             .withAutomaticReconnect()
             .build();
 

@@ -5,7 +5,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Load secrets from configuration
 var configuration = builder.Configuration;
 var azureOpenAIKey = configuration["OpenAISecrets:ApiKey"];
-var azureOpenAIEndpoint = "https://sand-and-stones-open-ai-0001.openai.azure.com/";
+var azureOpenAIEndpoint = "https://proj-sand-and-stones-ra-resource.openai.azure.com/";
 var azureOpenAIDeploymentName = "gpt-4o-mini";
 
 builder.Services.AddAzureOpenAIChatCompletion(
@@ -13,18 +13,19 @@ builder.Services.AddAzureOpenAIChatCompletion(
                         endpoint: azureOpenAIEndpoint,
                         apiKey: azureOpenAIKey);
 
-builder.Services.AddSignalR();
-
 builder.Services.AddCors(options =>
 {
-    options.AddDefaultPolicy(policy =>
+    options.AddDefaultPolicy(builder =>
     {
-        policy.WithOrigins("http://localhost:3000")
-              .AllowAnyHeader()
-              .AllowAnyMethod()
-              .AllowCredentials();
+        builder
+            .WithOrigins("http://localhost:3001") // Or "*", for testing only
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials();
     });
 });
+
+builder.Services.AddSignalR();
 
 var app = builder.Build();
 

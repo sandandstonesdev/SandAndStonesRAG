@@ -1,0 +1,23 @@
+version: "3.8"
+
+services:
+  backend:
+    build:
+      context: ./ConversationService
+    ports:
+      - "5012:5012"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:5012
+      - OpenAISecrets__ApiKey=${OPENAI_API_KEY}
+
+  frontend:
+    build:
+      context: ./conversation-client
+    ports:
+      - "3001:3000"
+    environment:
+      - NODE_ENV=production
+      - NEXT_PUBLIC_API_URL=http://localhost:5012
+    depends_on:
+      - backend
