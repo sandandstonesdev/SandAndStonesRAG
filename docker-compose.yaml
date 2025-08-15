@@ -3,21 +3,30 @@ version: "3.8"
 services:
   backend:
     build:
-      context: ./ConversationService
+      context: "./ConversationService"
+      dockerfile: Dockerfile.dev
     ports:
       - "5012:5012"
+      - "7124:7124"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - ASPNETCORE_URLS=http://+:5012
+      - ASPNETCORE_URLS=https://+:7124;http://+:5012
+      - ASPNETCORE_Kestrel__Certificates__Default__Password=${CERT_PASSWORD}
+      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
       - OpenAISecrets__ApiKey=${OPENAI_API_KEY}
+    volumes:
+      - ./ConversationService/aspnetapp.pfx:/https/aspnetapp.pfx:ro
 
   frontend:
     build:
       context: ./conversation-client
+      dockerfile: Dockerfile.dev
     ports:
       - "3001:3000"
     environment:
-      - NODE_ENV=production
-      - NEXT_PUBLIC_API_URL=http://localhost:5012
+      - NODE_ENV=development
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
     depends_on:
       - backend
+    volumes:
+      - ./conversation-client/certs:/app/certs:ro
