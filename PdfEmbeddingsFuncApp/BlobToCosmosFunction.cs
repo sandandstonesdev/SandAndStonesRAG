@@ -1,5 +1,4 @@
-﻿using Azure;
-using Azure.AI.OpenAI;
+﻿using Azure.AI.OpenAI;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -12,26 +11,23 @@ public class BlobToCosmosFunction
     private readonly OpenAIClient _openAIClient;
     private readonly string _embeddingDeployment;
 
-    public BlobToCosmosFunction(ILoggerFactory loggerFactory, IConfiguration configuration)
+    public BlobToCosmosFunction(
+        ILoggerFactory loggerFactory,
+        IConfiguration configuration,
+        OpenAIClient openAIClient)
     {
         _logger = loggerFactory.CreateLogger<BlobToCosmosFunction>();
-        var endpoint = configuration["AzureOpenAI:Endpoint"];
-        var key = configuration["AzureOpenAI:Key"];
         _embeddingDeployment = configuration["AzureOpenAI:EmbeddingDeployment"] ?? string.Empty;
 
         ArgumentException.ThrowIfNullOrWhiteSpace(_embeddingDeployment, "AzureOpenAI:EmbeddingDeployment");
-        ArgumentException.ThrowIfNullOrWhiteSpace(endpoint, "AzureOpenAI:Endpoint");
-        ArgumentException.ThrowIfNullOrWhiteSpace(key, "AzureOpenAI:Key");
-
-        _openAIClient = new OpenAIClient(
-            new Uri(endpoint),
-            new AzureKeyCredential(key));
+        
+        _openAIClient = openAIClient;
     }
 
     [Function("BlobToCosmosFunction")]
     [CosmosDBOutput(
-        databaseName: "document-embeddings",
-        containerName: "embeddings",
+        databaseName: "chatbot-embeddings",
+        containerName: "document-embeddings",
         Connection = "CosmosDBConnection")]
     public async Task<Document> Run(
         [BlobTrigger("documents/{name}", Connection = "AzureWebJobsStorage")] byte[] blobContent,
