@@ -12,6 +12,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docker", "Docker", "{02EA68
 		docker-compose.yaml = docker-compose.yaml
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PdfEmbeddingsFuncApp", "PdfEmbeddingsFuncApp\PdfEmbeddingsFuncApp.csproj", "{99E21C25-0D29-0348-7DCC-4E98BF31C51A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -28,6 +30,10 @@ Global
 		{00C1046E-4CDF-9BCE-3CDA-572AF18EA0D2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{00C1046E-4CDF-9BCE-3CDA-572AF18EA0D2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{00C1046E-4CDF-9BCE-3CDA-572AF18EA0D2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{99E21C25-0D29-0348-7DCC-4E98BF31C51A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{99E21C25-0D29-0348-7DCC-4E98BF31C51A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{99E21C25-0D29-0348-7DCC-4E98BF31C51A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{99E21C25-0D29-0348-7DCC-4E98BF31C51A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
