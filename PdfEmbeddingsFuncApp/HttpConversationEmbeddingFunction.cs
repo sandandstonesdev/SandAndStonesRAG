@@ -4,19 +4,20 @@ using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using OpenAI.Embeddings;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
 public class HttpConversationEmbeddingFunction
 {
     private readonly ILogger _logger;
-    private readonly OpenAIClient _openAIClient;
+    private readonly AzureOpenAIClient _openAIClient;
     private readonly string _embeddingDeployment;
 
     public HttpConversationEmbeddingFunction(
         ILoggerFactory loggerFactory,
         IConfiguration configuration,
-        OpenAIClient openAIClient)
+        AzureOpenAIClient openAIClient)
     {   
         _logger = loggerFactory.CreateLogger<HttpConversationEmbeddingFunction>();
         _embeddingDeployment = configuration["AzureOpenAI:EmbeddingDeployment"] ?? string.Empty;
@@ -43,10 +44,14 @@ public class HttpConversationEmbeddingFunction
 
         _logger.LogInformation($"Http trigger function processed conversation message\n User:{requestBody?.UserId} \n Message: {requestBody?.Message}");
 
-        var embeddingOptions = new EmbeddingsOptions(_embeddingDeployment, [requestBody.Message]);
-        var embeddingResponse = await _openAIClient.GetEmbeddingsAsync(embeddingOptions);
+        var embeddingClient = _openAIClient.GetEmbeddingClient(_embeddingDeployment);
 
-        var embedding = embeddingResponse.Value.Data[0].Embedding.ToArray();
+        var embeddingResponse = await embeddingClient.GenerateEmbeddingsAsync(
+            [requestBody?.Message]
+        );
+
+        var embeddings = embeddingResponse.Value.First();
+        ReadOnlyMemory<float> vector = embeddings.ToFloats();
 
         var document = new ConversationDocument
         {
@@ -56,7 +61,7 @@ public class HttpConversationEmbeddingFunction
             Created = requestBody.Created,
             Updated = requestBody.Created,
             MessageLength = requestBody.Message.Length,
-            Embedding = embedding
+            Embedding = vector.ToArray()
         };
 
         return document;

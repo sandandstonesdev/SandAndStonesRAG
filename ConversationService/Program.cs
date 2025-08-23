@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Cors.Infrastructure;
 using Microsoft.SemanticKernel;
 using ConversationService;
 
@@ -6,6 +5,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Load secrets from configuration
 var configuration = builder.Configuration;
+
 var azureOpenAIKey = configuration["OpenAISecrets:ApiKey"];
 var azureOpenAIEndpoint = "https://proj-sand-and-stones-ra-resource.openai.azure.com/";
 var azureOpenAIDeploymentName = "gpt-4o-mini";
@@ -17,6 +17,7 @@ builder.Services.AddAzureOpenAIChatCompletion(
                         endpoint: azureOpenAIEndpoint,
                         apiKey: azureOpenAIKey);
 
+builder.Services.AddTransient<SummarizeService>();
 
 builder.Services.AddCors(options =>
 {

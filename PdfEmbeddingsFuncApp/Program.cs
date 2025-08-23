@@ -1,5 +1,6 @@
 using Azure;
 using Azure.AI.OpenAI;
+using Azure.Storage.Blobs;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Builder;
@@ -15,7 +16,7 @@ builder.Services
     .AddApplicationInsightsTelemetryWorkerService()
     .ConfigureFunctionsApplicationInsights();
 
-builder.Services.AddSingleton<OpenAIClient>(sp =>
+builder.Services.AddSingleton(sp =>
 {
     var config = sp.GetRequiredService<IConfiguration>();
     var endpoint = config["AzureOpenAI:Endpoint"];
@@ -23,7 +24,15 @@ builder.Services.AddSingleton<OpenAIClient>(sp =>
     ArgumentException.ThrowIfNullOrWhiteSpace(endpoint, "AzureOpenAI:Endpoint");
     ArgumentException.ThrowIfNullOrWhiteSpace(key, "AzureOpenAI:Key");
 
-    return new OpenAIClient(new Uri(endpoint), new AzureKeyCredential(key));
+    return new AzureOpenAIClient(new Uri(endpoint), new AzureKeyCredential(key));
+});
+
+builder.Services.AddSingleton(sp =>
+{
+    var config = sp.GetRequiredService<IConfiguration>();
+    var connectionString = config["AzureWebJobsStorage"];
+    ArgumentException.ThrowIfNullOrWhiteSpace(connectionString, "AzureWebJobsStorage");
+    return new BlobServiceClient(connectionString);
 });
 
 // --- Cosmos DB resource creation (clean, isolated) ---

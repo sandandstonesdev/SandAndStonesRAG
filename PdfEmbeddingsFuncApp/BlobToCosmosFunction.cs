@@ -2,19 +2,21 @@
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using OpenAI;
+using OpenAI.Embeddings;
 using System.Text;
 using System.Text.Json.Serialization;
 
 public class BlobToCosmosFunction
 {
     private readonly ILogger _logger;
-    private readonly OpenAIClient _openAIClient;
+    private readonly AzureOpenAIClient _openAIClient;
     private readonly string _embeddingDeployment;
 
     public BlobToCosmosFunction(
         ILoggerFactory loggerFactory,
         IConfiguration configuration,
-        OpenAIClient openAIClient)
+        AzureOpenAIClient openAIClient)
     {
         _logger = loggerFactory.CreateLogger<BlobToCosmosFunction>();
         _embeddingDeployment = configuration["AzureOpenAI:EmbeddingDeployment"] ?? string.Empty;
@@ -36,13 +38,14 @@ public class BlobToCosmosFunction
         _logger.LogInformation($"Blob trigger function processed blob\n Name:{name} \n Size: {blobContent.Length} Bytes");
         string content = Encoding.UTF8.GetString(blobContent);
 
-        var embeddingOptions = new EmbeddingsOptions(_embeddingDeployment, [content]);
-        var embeddingResponse = await _openAIClient.GetEmbeddingsAsync(
-            embeddingOptions,
-            cancellationToken: default
+        var embeddingClient = _openAIClient.GetEmbeddingClient(_embeddingDeployment);
+        
+        var embeddingResponse = await embeddingClient.GenerateEmbeddingsAsync(
+            [content]
         );
 
-        var embedding = embeddingResponse.Value.Data[0].Embedding.ToArray();
+        var embeddings = embeddingResponse.Value.First();
+        ReadOnlyMemory<float> vector = embeddings.ToFloats();
 
         var document = new Document
         {
@@ -50,7 +53,7 @@ public class BlobToCosmosFunction
             BlobName = name,
             ContentLength = blobContent.Length,
             ContentPreview = Encoding.UTF8.GetString(blobContent, 0, Math.Min(blobContent.Length, 100)),
-            Embedding = embedding
+            Embedding = vector.ToArray()
         };
 
         return document;
