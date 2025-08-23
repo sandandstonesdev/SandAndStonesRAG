@@ -1,0 +1,5 @@
+﻿*.md
+*.ps1
+test/
+docs/
+local.settings.json

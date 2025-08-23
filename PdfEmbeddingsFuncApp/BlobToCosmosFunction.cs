@@ -22,7 +22,7 @@ public class BlobToCosmosFunction
         _embeddingDeployment = configuration["AzureOpenAI:EmbeddingDeployment"] ?? string.Empty;
 
         ArgumentException.ThrowIfNullOrWhiteSpace(_embeddingDeployment, "AzureOpenAI:EmbeddingDeployment");
-
+        
         _openAIClient = openAIClient;
     }
 

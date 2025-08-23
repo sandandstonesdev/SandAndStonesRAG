@@ -1,6 +1,4 @@
-﻿using Microsoft.Azure.Cosmos;
-using ConversationService.Models;
-using Microsoft.Azure.Cosmos.Linq;
+﻿using ConversationService.Models;
 
 namespace ConversationService;
 

@@ -1,4 +1,5 @@
-﻿using Azure.AI.OpenAI;
+﻿using Azure;
+using Azure.AI.OpenAI;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Configuration;
@@ -17,7 +18,7 @@ public class HttpConversationEmbeddingFunction
         ILoggerFactory loggerFactory,
         IConfiguration configuration,
         AzureOpenAIClient openAIClient)
-    {
+    {   
         _logger = loggerFactory.CreateLogger<HttpConversationEmbeddingFunction>();
         _embeddingDeployment = configuration["AzureOpenAI:EmbeddingDeployment"] ?? string.Empty;
 
