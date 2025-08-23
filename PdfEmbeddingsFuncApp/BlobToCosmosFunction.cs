@@ -1,0 +1,74 @@
+﻿using Azure.AI.OpenAI;
+using Microsoft.Azure.Functions.Worker;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
+using OpenAI;
+using OpenAI.Embeddings;
+using System.Text;
+using System.Text.Json.Serialization;
+
+public class BlobToCosmosFunction
+{
+    private readonly ILogger _logger;
+    private readonly AzureOpenAIClient _openAIClient;
+    private readonly string _embeddingDeployment;
+
+    public BlobToCosmosFunction(
+        ILoggerFactory loggerFactory,
+        IConfiguration configuration,
+        AzureOpenAIClient openAIClient)
+    {
+        _logger = loggerFactory.CreateLogger<BlobToCosmosFunction>();
+        _embeddingDeployment = configuration["AzureOpenAI:EmbeddingDeployment"] ?? string.Empty;
+
+        ArgumentException.ThrowIfNullOrWhiteSpace(_embeddingDeployment, "AzureOpenAI:EmbeddingDeployment");
+
+        _openAIClient = openAIClient;
+    }
+
+    [Function("BlobToCosmosFunction")]
+    [CosmosDBOutput(
+        databaseName: "chatbot-embeddings",
+        containerName: "document-embeddings",
+        Connection = "CosmosDBConnection")]
+    public async Task<Document> Run(
+        [BlobTrigger("documents/{name}", Connection = "AzureWebJobsStorage")] byte[] blobContent,
+        string name)
+    {
+        _logger.LogInformation($"Blob trigger function processed blob\n Name:{name} \n Size: {blobContent.Length} Bytes");
+        string content = Encoding.UTF8.GetString(blobContent);
+
+        var embeddingClient = _openAIClient.GetEmbeddingClient(_embeddingDeployment);
+        
+        var embeddingResponse = await embeddingClient.GenerateEmbeddingsAsync(
+            [content]
+        );
+
+        var embeddings = embeddingResponse.Value.First();
+        ReadOnlyMemory<float> vector = embeddings.ToFloats();
+
+        var document = new Document
+        {
+            Id = Guid.NewGuid().ToString(),
+            BlobName = name,
+            ContentLength = blobContent.Length,
+            ContentPreview = Encoding.UTF8.GetString(blobContent, 0, Math.Min(blobContent.Length, 100)),
+            Embedding = vector.ToArray()
+        };
+
+        return document;
+    }
+
+    public class Document
+    {
+        [JsonPropertyName("id")]
+        public string Id { get; set; }
+        public string BlobName { get; set; }
+
+        public DateTimeOffset Created { get; set; } = DateTimeOffset.Now;
+        public DateTimeOffset Updated { get; set; } = DateTimeOffset.Now;
+        public int ContentLength { get; set; }
+        public string ContentPreview { get; set; }
+        public float[] Embedding { get; set; }
+    }
+}
